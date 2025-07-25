@@ -1,0 +1,27 @@
+strategies:
+  - Mainline
+branches:
+  main:
+    regex: ^main$
+    source-branches: []
+    is-main-branch: true
+  topics:
+    regex: ^topics?[/-](?<BranchName>.+)
+    label: '{BranchName}'
+    source-branches:
+      - main
+  pull-request:
+    mode: ContinuousDelivery
+    label: PullRequest
+    increment: None
+    prevent-increment:
+      of-merged-branch: true
+      when-current-commit-tagged: false
+    label-number-pattern: '[/-](?<number>\d+)'
+    track-merge-message: true
+    regex: ^(pull|pull\-requests|pr)[/-]
+    source-branches:
+      - main
+    is-source-branch-for: []
+    pre-release-weight: 30000
+

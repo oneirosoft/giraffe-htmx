@@ -1,0 +1,85 @@
+name: Build, Test, and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - 'main'
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  PROJECT_PATH: 'src/Oneiro.Giraffe.ViewEngine.Htmx/Oneiro.Giraffe.ViewEngine.Htmx.fsproj'
+  TEST_PATH: 'tests/Oneiro.Giraffe.ViewEngine.Htmx.Tests/Oneiro.Giraffe.ViewEngine.Htmx.Tests.fsproj'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.1.2
+      with:
+        versionSpec: '6.0.0'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v3.1.2
+      with:
+        useConfigFile: true
+    
+    - name: Display version
+      run: |
+        echo "# ${{ steps.gitversion.outputs.majorMinorPatch }}" >> $GITHUB_STEP_SUMMARY
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.fsproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build solution
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run unit tests
+      run: dotnet test --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults
+      
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: .NET Tests
+        path: TestResults/*.trx
+        reporter: dotnet-trx
+    
+    - name: Pack NuGet package
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: | 
+        dotnet pack ${{ env.PROJECT_PATH }} \
+        --configuration Release \
+        --no-build \
+        --output ./artifacts \
+        /p:PackageVersion=${{ steps.gitversion.outputs.majorMinorPatch }}
+      
+    - name: Publish to NuGet.org
+      if: startsWith(github.ref, 'refs/tags/v')
+      env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: dotnet nuget push './artifacts/*.nupkg' --source https://api.nuget.org/v3/index.json --api-key $NUGET_API_KEY

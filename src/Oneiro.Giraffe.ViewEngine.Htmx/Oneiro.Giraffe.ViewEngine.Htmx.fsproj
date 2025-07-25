@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    
+    <!-- NuGet Package Information -->
+    <PackageId>Oneiro.Giraffe.ViewEngine.Htmx</PackageId>
+    <!-- Version will be set by GitVersion during build -->
+    <Authors>Oneirosoft Contributors</Authors>
+    <Description>A comprehensive F# library that extends Giraffe.ViewEngine with type-safe HTMX attributes and handlers, enabling you to build modern, interactive web applications with minimal JavaScript.</Description>
+    <Summary>Type-safe HTMX integration for Giraffe.ViewEngine with fluent builders and smart HTTP handlers</Summary>
+    <PackageTags>fsharp;giraffe;htmx;web;functional;html;dsl;interactive;spa;typescript-safe</PackageTags>
+    <PackageProjectUrl>https://github.com/oneirosoft/giraffe-htmx</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/oneirosoft/giraffe-htmx</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicense>MIT</PackageLicense>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Copyright © 2025 Oneiro Contributors</Copyright>
+    <PackageIcon>oneiro_icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    
+    <!-- Build Configuration -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <!-- Source Link Configuration - only enable if in a git repository -->
+    <PublishRepositoryUrl Condition="'$(RepositoryUrl)' != '' AND Exists('$(MSBuildProjectDirectory)/../../.git')">true</PublishRepositoryUrl>
+    <EmbedUntrackedSources Condition="'$(RepositoryUrl)' != '' AND Exists('$(MSBuildProjectDirectory)/../../.git')">true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="HttpContextHtmxExtensions.fs" />
+    <Compile Include="HxAttributes.fs" />
+    <Compile Include="HxHandlers.fs" />
+    <Compile Include="HxLayouts.fs" />
+  </ItemGroup>
+
+  <!-- Package Content -->
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+    <None Include="../../.images/oneiro_icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Giraffe" Version="7.0.2" />
+    <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
+    
+    <!-- Source Link for debugging - only when in git repository -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" Condition="Exists('$(MSBuildProjectDirectory)/../../.git')" />
+  </ItemGroup>
+
+</Project>
